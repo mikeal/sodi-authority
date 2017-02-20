@@ -1,0 +1,24 @@
+{
+  "name": "sodi-authority",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "deploy": "now -e SODI_DB=@sodi_db -e SODI_PUBLICKEY=@sodi_publickey -e SODI_SECRETKEY=@sodi_secretkey -e SODI_GITHUB_CLIENTID=@sodi_github_clientid -e SODI_GITHUB_CLIENTSECRET=@sodi_github_clientsecret ",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Mikeal Rogers <mikeal.rogers@gmail.com> (http://www.mikealrogers.com)",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "now": "^4.5.6"
+  },
+  "dependencies": {
+    "bel": "^4.5.1",
+    "couch": "^0.5.0",
+    "request": "^2.79.0",
+    "response": "^0.18.0",
+    "sodi": "^0.2.0"
+  }
+}
