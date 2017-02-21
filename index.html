@@ -43,9 +43,20 @@
       </center-container>
     </main-container>
     <script>
-      let params = new URL(window.location).searchParams
-      let publicKey = params.get('publicKey')
-      let complete = params.get('complete')
+      // https://stackoverflow.com/questions/2090551/parse-query-string-in-javascript
+      function getQueryVariable(variable) {
+        var query = window.location.search.substring(1);
+        var vars = query.split('&');
+        for (var i = 0; i < vars.length; i++) {
+          var pair = vars[i].split('=');
+          if (decodeURIComponent(pair[0]) == variable) {
+            return decodeURIComponent(pair[1]);
+          }
+        }
+        console.log('Query variable %s not found', variable);
+      }
+      let publicKey = getQueryVariable('publicKey')
+      let complete = getQueryVariable('complete')
       if (publicKey && !complete) {
         ;[...document.querySelectorAll('button')].forEach(button => {
           button.style.display = 'inline-block'
