@@ -1,6 +1,7 @@
 const sodi = require('sodi')
 const request = require('request').defaults({json: true})
-const bel = require('bel')
+
+const baseurl = 'https://sodi-authority.now.sh'
 
 module.exports = (keypair, cb) => {
   if (!cb) {
@@ -8,29 +9,18 @@ module.exports = (keypair, cb) => {
     keypair = sodi.generate()
   }
   let publicKey = keypair.publicKey.toString('hex')
-  let iframe = bel`
-    <iframe
-      src="https://sodi-authority.now.sh?publicKey=${publicKey}"
-      style="margin: 0;padding: 0;border: none;"
-      width="300px"
-      height="300px"
-    >
-    </iframe>
-  `
-  let receiveMessage = ev => {
-    if (ev.data && ev.data.app && ev.data.app === 'sodi-authority') {
-      window.removeEventListener('message', receiveMessage)
-      request(ev.data.signature, (err, resp, signature) => {
-        if (err) return cb(err)
-        if (resp.statusCode !== 200) {
-          return cb(new Error('Status not 200, ' + resp.statusCode))
-        }
-        cb(null, {keypair, signature})
-      })
+
+  let u = `${baseurl}/signature/${publicKey}?wait=true`
+
+  request(u, (e, resp, body) => {
+    if (e) return cb(e)
+    if (resp.statusCode !== 200) {
+      return cb(new Error(`Status is not 200, ${resp.statusCode}`))
     }
-  }
-  window.addEventListener('message', receiveMessage, false)
-  return iframe
+    cb(null, {keypair, signature: body})
+  })
+
+  return `${baseurl}/login/github/${publicKey}`
 }
 
 const knownKeys = [

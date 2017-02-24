@@ -1,4 +1,5 @@
 const couch = require('couch')
+const follow = require('follow')
 const http = require('http')
 const qs = require('querystring')
 const fs = require('fs')
@@ -46,6 +47,21 @@ const cors = {
   'Access-Control-Allow-Headers': 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization'
 }
 
+
+const feed = new follow.Feed(
+  { db: process.env.SODI_DB,
+    include_docs: true,
+    since: 'now'
+  }
+)
+const dbevents = {}
+feed.on('change', change => {
+  if (dbevents[change.id]) {
+    ;[...dbevents[change.id]].forEach(fn => fn(change.doc))
+  }
+})
+feed.follow()
+
 const app = http.createServer((req, res) => {
   let u = url.parse(req.url, {parseQueryString: true})
   if (u.pathname === '/') {
@@ -55,8 +71,6 @@ const app = http.createServer((req, res) => {
     return fs.createReadStream(testfile).pipe(response()).pipe(res)
   }
   if (u.pathname.slice(0, '/signature/'.length) === '/signature/') {
-    console.log('signature')
-
     for (var name in cors) {
       res.setHeader(name, cors[name])
     }
@@ -67,7 +81,25 @@ const app = http.createServer((req, res) => {
 
     let id = u.pathname.slice('/signature/'.length)
     db.get(id, (err, doc) => {
-      if (err) return response.error(err).pipe(res)
+      if (err) {
+        if (u.query.wait) {
+          if (!dbevents[id]) {
+            dbevents[id] = new Set()
+          }
+          let handler = doc => {
+            if (res.headersSent) return
+            response.json(doc).pipe(res)
+          }
+          dbevents[id].add(handler)
+          let cleanup = () => dbevents[id].delete(handler)
+          res.on('close', cleanup)
+          res.on('finish', cleanup)
+          res.on('aborted', cleanup)
+          return
+        } else {
+          return response.error(err).pipe(res)
+        }
+      }
       response.json(doc).pipe(res)
     })
     return

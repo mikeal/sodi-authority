@@ -57,26 +57,6 @@
       }
       let publicKey = getQueryVariable('publicKey')
       let complete = getQueryVariable('complete')
-      if (publicKey && !complete) {
-        ;[...document.querySelectorAll('button')].forEach(button => {
-          button.style.display = 'inline-block'
-          button.onclick = e => {
-            window.open(`/login/github/${publicKey}`, '_blank')
-            document.querySelector('main-container').innerHTML = ''
-            // TODO: better "logging in UI."
-            let _check = () => {
-              let signature = localStorage.getItem(publicKey)
-              if (signature) {
-                let data = {app: 'sodi-authority', signature}
-                window.parent.postMessage(data, '*')
-              } else {
-                setTimeout(_check, 100)
-              }
-            }
-            setTimeout(_check, 100)
-          }
-        })
-      }
       if (publicKey && complete) {
         if (window.parent) {
           let signature = `${window.location.origin}/signature/${publicKey}`
