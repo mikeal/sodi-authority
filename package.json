@@ -12,7 +12,7 @@
   "author": "Mikeal Rogers <mikeal.rogers@gmail.com> (http://www.mikealrogers.com)",
   "license": "Apache-2.0",
   "devDependencies": {
-    "now": "^4.5.6"
+    "now": "^7.0.1"
   },
   "dependencies": {
     "bel": "^4.5.1",

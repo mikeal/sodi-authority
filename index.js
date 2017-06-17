@@ -1,3 +1,4 @@
+/* globals localStorage */
 const sodi = require('sodi')
 const request = require('request').defaults({json: true})
 
@@ -30,3 +31,33 @@ const knownKeys = [
 ]
 
 module.exports.knownKeys = knownKeys
+module.exports.component = require('./component')
+module.exports.persist = (key, obj) => {
+  let token = {
+    keypair: {
+      publicKey: obj.keypair.publicKey.toString('hex'),
+      secretKey: obj.keypair.secretKey.toString('hex')
+    },
+    signature: obj.signature
+  }
+  localStorage[key] = JSON.stringify(token)
+}
+module.exports.load = key => {
+  let token = JSON.parse(localStorage[key])
+  token.keypair.publicKey = Buffer.from(token.keypair.publicKey, 'hex')
+  token.keypair.secretKey = Buffer.from(token.keypair.secretKey, 'hex')
+  return token
+}
+
+function validAuthority (signature) {
+  for (var i = 0; i < module.exports.knownKeys.length; i++) {
+    let key = module.exports.knownKeys.knownKeys[i]
+    if (signature.publicKey === key.key) {
+      if (key.expiration > Date.now()) {
+        return true
+      }
+    }
+  }
+  return false
+}
+module.exports.validAuthority = validAuthority
